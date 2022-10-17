@@ -10,12 +10,13 @@ import matplotlib.pyplot as plt
 
 import core
 import config
+# import pdb
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_agents', type=int, required=True)
-    parser.add_argument('--model_path', type=str, default=None)
-    parser.add_argument('--vis', type=int, default=0)
+    parser.add_argument('--num_agents', type=int, default=8)
+    parser.add_argument('--model_path', type=str, default="models/model_save")
+    parser.add_argument('--vis', type=int, default=1)
     parser.add_argument('--gpu', type=str, default='0')
     args = parser.parse_args()
     return args
@@ -149,7 +150,10 @@ def main():
         
         # randomly generate the initial conditions s_np_ori and the goal states g_np_ori
         s_np_ori, g_np_ori = core.generate_data(args.num_agents, config.DIST_MIN_THRES * 1.5)
-
+        s_np_ori = np.array([[0,0,0,0],[0.0,0.069,0,0]])
+        g_np_ori = np.array([[0,0],[0.0,0.069]])
+        # print(s_np_ori)
+        # time.sleep(10)
         s_np, g_np = np.copy(s_np_ori), np.copy(g_np_ori)
         init_dist_errors.append(np.mean(np.linalg.norm(s_np[:, :2] - g_np, axis=1)))
         # store the trajectory for visualization
@@ -204,6 +208,7 @@ def main():
         # run the simulation using LQR controller without considering collision
         s_np, g_np = np.copy(s_np_ori), np.copy(g_np_ori)
         for i in range(config.INNER_LOOPS):
+            # pdb.set_trace()
             K = np.eye(2, 4) + np.eye(2, 4, k=2) * np.sqrt(3)
             s_ref = np.concatenate([s_np[:, :2] - g_np, s_np[:, 2:]], axis=1)
             a_lqr = -s_ref.dot(K.T)
@@ -227,6 +232,7 @@ def main():
 
         if args.vis:
             # visualize the trajectories
+            # pdb.set_trace()
             vis_range = max(1, np.amax(np.abs(s_np_ori[:, :2])))
             agent_size = 100 / vis_range ** 2
             g_np = g_np / vis_range

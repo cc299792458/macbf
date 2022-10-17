@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 import config
+# import pdb
 
 
 def generate_obstacle_circle(center, radius, num=12):
@@ -41,12 +42,18 @@ def generate_obstacle_rectangle(center, sides, num=12):
 
 
 def generate_data(num_agents, dist_min_thres):
+    """
+    This function samples initial states and goals of each agent, which guarantees 
+    the distance of each pair of agents(initial states/goal) is larger then dist_min_thres
+    """
     side_length = np.sqrt(max(1.0, num_agents / 8.0))
     states = np.zeros(shape=(num_agents, 2), dtype=np.float32)
     goals = np.zeros(shape=(num_agents, 2), dtype=np.float32)
 
+    #Initial States
     i = 0
     while i < num_agents:
+        #np.random.uniform:sample from 0 to 1, return ndarray type in the shape of arg size.
         candidate = np.random.uniform(size=(2,)) * side_length
         dist_min = np.linalg.norm(states - candidate, axis=1).min()
         if dist_min <= dist_min_thres:
@@ -54,8 +61,10 @@ def generate_data(num_agents, dist_min_thres):
         states[i] = candidate
         i = i + 1
 
+    #Goals
     i = 0
     while i < num_agents:
+        #Goal is in the near field of initial state
         candidate = np.random.uniform(-0.5, 0.5, size=(2,)) + states[i]
         dist_min = np.linalg.norm(goals - candidate, axis=1).min()
         if dist_min <= dist_min_thres:
@@ -311,7 +320,7 @@ def ttc_dangerous_mask_np(s, r, ttc):
     beta = 2 * (x * vx + y * vy)
     gamma = x ** 2 + y ** 2 - r ** 2
     dist_dangerous = np.less(gamma, 0)
-
+    # pdb.set_trace()
     has_two_positive_roots = np.logical_and(
         np.greater(beta ** 2 - 4 * alpha * gamma, 0),
         np.logical_and(np.greater(gamma, 0), np.less(beta, 0)))
